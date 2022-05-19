@@ -1,0 +1,66 @@
+{
+  "variables": {
+    "aws_access_key": "",
+    "aws_secret_key": "",
+    "gitlab_url": "" ,
+    "git_url": "",
+    "app_name": "" ,
+    "aws_instance_type": "",
+    "env": "",
+    "app_start_command" : ""
+  },
+  "builders": [
+    {
+      "type": "amazon-ebs",
+      "access_key": "{{user `aws_access_key`}}",
+      "secret_key": "{{user `aws_secret_key`}}",
+      "region": "eu-west-1",
+      "source_ami": "ami-0f77239c78d63d2de",
+      "iam_instance_profile": "EnzoApplicationServerBaseIAMRole",
+      "vpc_filter": {
+        "filters": {
+          "tag:Name": "vpc-{{user `env`}}",
+          "isDefault": "false"
+        }
+      },
+      "subnet_filter": {
+        "filters": {
+          "tag:Name": "sn-{{user `env`}}-pub-a"
+        },
+        "random": true
+      },
+      "instance_type": "{{user `aws_instance_type`}}",
+      "ssh_username": "ec2-user",
+      "ami_name": "{{user `app_name`}}-ami-{{timestamp}}",
+      "tags": {
+          "Environment": "{{user `env`}}" ,
+          "Name": "{{user `app_name`}}"
+      }
+    }
+  ],
+  "post-processors": [
+    {
+      "type": "manifest",
+      "output": "packerBuildResult.json",
+      "strip_path": true
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "file",
+      "destination": "/tmp/",
+      "source": "./packerEc2Provisioning.sh"
+    },
+    {
+      "type": "shell",
+      "inline": [
+        "sleep 30",
+        "cd /tmp" ,
+        "sudo chmod 100 ./packerEc2Provisioning.sh",
+        "echo {{user `app_start_command`}}",
+        "sudo ./packerEc2Provisioning.sh {{user `gitlab_url`}} {{user `env`}} {{user `app_name`}} {{user `app_start_command`}}",
+        "sudo rm -f ./packerEc2Provisioning.sh"
+      ]
+    }
+  ]
+}

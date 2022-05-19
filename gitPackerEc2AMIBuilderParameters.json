@@ -1,0 +1,10 @@
+{
+	"aws_access_key": "${AWS_ACCESS_KEY}",
+	"aws_secret_key": "${AWS_SECRET_KEY}",
+	"gitlab_url": "${CI_REPOSITORY_URL}",
+	"app_name":"${APPNAME}",
+    "app_start_command": "${APP_START_COMMAND}",
+	"aws_instance_type": "t2.micro",
+    "env": "{ENV}"
+
+}

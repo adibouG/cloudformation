@@ -1,0 +1,11 @@
+{
+	"aws_access_key": "{AWSACCESSKEY}",
+	"aws_secret_key": "{AWSSECRETKEY}",
+	"git_url": "{GITURL}",
+    	"git_user": "{GITUSER}",
+    	"git_pwd": "{GITPWD}",
+	"app_name":"{APPNAME}",
+	"aws_instance_type": "{ECTYPE}",
+    "app_start_command" : "{APPSTARTCOMMAND}"},
+    "env": "{ENV}"
+}

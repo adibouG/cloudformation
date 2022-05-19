@@ -1,0 +1,24 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+    "Resources" : {
+        "VpcStack" : {
+  	       "Type" : "AWS::CloudFormation::Stack",
+	       "Properties" : {
+	           "TemplateURL" : "https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/CloudFormationTemplate_vpc-{ENV}.json"
+   	       }
+        },
+        "ApplicationStack" : {
+            "Type" : "AWS::CloudFormation::Stack",
+            "Properties" : {
+                "TemplateURL" : "https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/CloudFormationTemplate_applications_{ENV}.json",
+                "Parameters": {
+                    "SharedValueParameter": {
+                        "Fn::GetAtt": [
+                          "NestedStackA",
+                          "Outputs.SharedValueOutput"
+                        ]
+                }
+            }
+        }
+    }
+}

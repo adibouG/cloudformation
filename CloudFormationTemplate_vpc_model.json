@@ -1,0 +1,476 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation cloud.enzosystems Template",
+    "Resources": {
+        "vpc{ENV}": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "EnableDnsSupport": "true",
+                "EnableDnsHostnames": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "vpc-{ENV}"
+                    }
+                ]
+            }
+        },
+        "igw{ENV}": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "igw-{ENV}"
+                    }
+                ]
+            }
+        },
+        "igwAttachment{ENV}": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "InternetGatewayId": {
+                    "Ref": "igw{ENV}"
+                },
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "routeIgw{ENV}": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "igw{ENV}"
+                },
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pub"
+                }
+            }
+        },
+        "eipNat{ENV}": {
+            "Type": "AWS::EC2::EIP",
+            "DependsOn":["igwAttachment{ENV}"] ,
+            "Properties": {
+                "Domain" : "VPC",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "eip-nat-{ENV}"
+                    }
+                ]
+            }
+        },
+        "nat{ENV}": {
+            "Type": "AWS::EC2::NatGateway",
+            "Properties": {    
+                "AllocationId" : {
+                    "Fn::GetAtt" : [ 
+                        "eipNat{ENV}", 
+                        "AllocationId"
+                    ]
+                },
+                "ConnectivityType": "public",
+                "SubnetId": {
+                    "Ref": "sn{ENV}PubA"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "nat-{ENV}"
+                    }
+                ]
+            }
+        },
+        "routeNat{ENV}": {
+            "Type": "AWS::EC2::Route",
+            "Properties": {
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "NatGatewayId": {
+                    "Ref": "nat{ENV}"
+                },
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                }
+            }
+        },
+        "sn{ENV}PubA": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1a",
+                "CidrBlock": "10.0.1.0/24",
+                "MapPublicIpOnLaunch": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pub-a"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Public"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PubB": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1b",
+                "CidrBlock": "10.0.2.0/24",
+                "MapPublicIpOnLaunch": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pub-b"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Public"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PriA1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1a",
+                "CidrBlock": "10.0.11.0/24",
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pri-a1"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Private"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PriB1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1b",
+                "CidrBlock": "10.0.21.0/24",
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pri-b1"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Private"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PriA2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1a",
+                "CidrBlock": "10.0.12.0/24",
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pri-a2"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Private"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PriB2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1b",
+                "CidrBlock": "10.0.22.0/24",
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pri-b2"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Private"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PriA3": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1a",
+                "CidrBlock": "10.0.13.0/24",
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pri-a3"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Private"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "sn{ENV}PriB3": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1b",
+                "CidrBlock": "10.0.23.0/24",
+                "MapPublicIpOnLaunch": false,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "sn-{ENV}-pri-b3"
+                    },
+                    {
+                        "Key": "Scope",
+                        "Value": "Private"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "rtbSn{ENV}Pri": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "rtb-sn-{ENV}-pri"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "rtbSn{ENV}Pub": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "rtb-sn-{ENV}-pub"
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "vpc{ENV}"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PubA": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pub"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PubA"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PubB": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pub"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PubB"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PriA1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PriA1"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PriB1": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PriB1"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PriA2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PriA2"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PriB2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PriB2"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PriA3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PriA3"
+                }
+            }
+        },
+        "rtbAssocSn{ENV}PriB3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "rtbSn{ENV}Pri"
+                },
+                "SubnetId": {
+                    "Ref": "sn{ENV}PriB3"
+                }
+            }
+        },
+        "alb{ENV}Ext": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "IpAddressType": "ipv4",
+                "Name": "alb-{ENV}-ext",
+                "Scheme": "internet-facing",
+                "Subnets": [
+                    {
+                        "Ref": "sn{ENV}PubA"
+                    },
+                    {
+                        "Ref": "sn{ENV}PubB"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "alb-{ENV}-ext"
+                    }
+                ],
+                "Type": "application"
+            }
+        },
+        "alb{ENV}Int": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "IpAddressType": "ipv4",
+                "Name": "alb-{ENV}-int",
+                "Scheme": "internal",
+                "Subnets": [
+                    {
+                        "Ref": "sn{ENV}PriA2"
+                    },
+                    {
+                        "Ref": "sn{ENV}PriB2"
+                    }
+                    
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "alb-{ENV}-int"
+                    }
+                ],
+                "Type": "application"
+            }
+        }
+    },
+    "Outputs" : {
+        "StackVPC" : {
+          "Description" : "The ID of the VPC",
+          "Value" : { "Ref" : "vpc{ENV}" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-VPCID" }
+          }
+        },
+        "SubnetA1" : { 
+          "Value" : { "Ref" : "sn{ENV}PriA1" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-SUBNETA1-ID" }
+          }
+        },
+        "SubnetA2" : { 
+          "Value" : { "Ref" : "sn{ENV}PriA2" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-SUBNETA2-ID" }
+          }
+        },
+        "SubnetB1" : { 
+          "Value" : { "Ref" : "sn{ENV}PriB1" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-SUBNETB1-ID" }
+          }
+        },
+        "SubnetB2" : { 
+          "Value" : { "Ref" : "sn{ENV}PriB2" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-SUBNETB2-ID" }
+          }
+        },
+        "SubnetA3" : { 
+          "Value" : { "Ref" : "sn{ENV}PriA3" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-SUBNETA3-ID" }
+          }
+        },
+        "SubnetB3" : { 
+          "Value" : { "Ref" : "sn{ENV}PriB3" },
+          "Export" : {
+            "Name" : {"Fn::Sub": "${AWS::StackName}-SUBNETB3-ID" }
+          }
+        }
+    }
+}

@@ -1,0 +1,192 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "AWS CloudFormation ec2 template for cloud.enzosystems Template",
+    "Parameters": {
+        "InstanceType": {
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues":[
+                "t2.micro",
+                "t2.small"
+            ],
+          "Description": "Enter t2.micro or t2.small. Default is t2.micro."
+        },
+        "Ec2InstanceAMI": {
+            "Type": "AWS::EC2::Image::Id",
+            "Default":"ami-0f77239c78d63d2de",
+            "Description": "Enter an instance AMI ID,ami-0e8cb4bdc5bb2e6c0 , ami-03c3a7e4263fd998c, ami-0a6610cc81aa75bbf , ..."
+        },
+        "Name": {
+            "Type": "String",
+            "Default":"{NAME}",
+            "Description": "Enter an application name ..."
+        }
+    },
+    "Resources": {
+        "{NAME}Instance1": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1a",
+                "ImageId": { "Ref": "Ec2InstanceAMI" } ,
+                "DisableApiTermination": false,
+                "InstanceInitiatedShutdownBehavior": "stop",
+                "InstanceType": { "Ref": "InstanceType" },
+                "KeyName": "{KEY}" ,
+                "Monitoring": true,
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": false,
+                        "DeleteOnTermination": true,
+                        "Description": "Network interfaces for {NAME} services instance 1 (eth0) environment {ENV}.",
+                        "DeviceIndex": 0,
+                        "GroupSet":  [ 
+                            { "Ref" : "{NAME}SecurityGroup" }
+                        ],
+                        "SubnetId":  "{SUBNETID1}"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "{NAME}-{ENV}-1" 
+                    }
+                ]
+           
+            }
+        },
+        "{NAME}Instance2": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "AvailabilityZone": "eu-west-1b",
+                "ImageId": { "Ref": "Ec2InstanceAMI" } ,
+                "DisableApiTermination": false,
+                "InstanceInitiatedShutdownBehavior": "stop",
+                "InstanceType":  { "Ref": "InstanceType" },
+                "KeyName": "{KEY}" ,
+                "Monitoring": true,
+                "NetworkInterfaces": [
+                    {
+                        "AssociatePublicIpAddress": false,
+                        "DeleteOnTermination": true,
+                        "Description": "Network interfaces for {NAME} services instance 2 (eth0) environment {ENV}.",
+                        "DeviceIndex": 0,
+                        "GroupSet":  [ 
+                            { "Ref" : "{NAME}SecurityGroup" }
+                        ],
+                        "SubnetId":  "{SUBNETID2}"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "{NAME}-{ENV}-2" 
+                    }
+                ]
+            }
+        },
+        "{NAME}SecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security group for the {NAME} ec2 instances.",
+                "GroupName": "SG-{NAME}-{ENV}",
+                "SecurityGroupIngress":[  
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 22,
+                        "ToPort": 22,
+                        "CidrIp": "10.0.0.0/16"
+                    },
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": {PORT},
+                        "ToPort": {PORT},
+                        "CidrIp": "10.0.0.0/16"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "SG-{NAME}"
+                    }
+                ],
+                "VpcId":  "{VPCID}" 
+            }
+        },
+        "{NAME}TargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckEnabled": true,
+                "HealthCheckPort": {PORT},
+                "HealthCheckProtocol": "HTTP",
+                "Name": "TG-{NAME}-{ENV}",
+                "Port": {PORT},
+                "Protocol": "HTTP",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "TG-{NAME}-{ENV}"
+                    }
+                ],
+                "Targets": [
+                    {
+                        "Id": {
+                            "Ref": "{NAME}Instance1"
+                        },
+                        "Port": {PORT}
+                    },
+                    {
+                        "Id": {
+                            "Ref": "{NAME}Instance2"
+                        },
+                        "Port": {PORT}
+                    }
+                ],
+                "TargetType": "instance",
+                "VpcId": "{VPCID}" 
+            }
+        },
+        "{NAME}Listener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "Type": "forward",
+                        "ForwardConfig": {
+                            "TargetGroups": [
+                                "TargetGroupArn": {
+                                    "Ref": "{NAME}TargetGroup"
+                                },
+                            ]
+                        }
+                    }
+                ],
+                "LoadBalancerArn": "{LOADBALANCERARN}",
+                "Port": {PORT},
+                "Protocol": "HTTP"
+            }
+        },
+        "{NAME}ListenerRule1": {
+            "Type": "AWS::ElasticLoadBalancingV2::ListenerRule",
+            "Properties": {
+                "Actions": [
+                    {
+                        "Type": "forward",
+                        "TargetGroupArn": { "Ref": "{NAME}TargetGroup" }
+                    }
+                ],
+                "Conditions": [
+                    {
+                        "Field": "path-pattern",
+                        "PathPatternConfig": {
+                            "Values": [
+                                {LISTENERPATH}
+                            ]
+                        }
+                    },
+               ],
+                "ListenerArn": { "Ref": "{NAME}Listener" },
+                "Priority": 1
+            }
+        }
+    }   
+}   
