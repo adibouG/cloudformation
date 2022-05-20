@@ -1,10 +1,10 @@
 ",{
 	"aws_access_key": "APQ
 	"aws_secret_key": "JYE8D7n9kDC",
-	"gitlab_url": "https://GitDeployments:glpat-z4FseywRs53fSt8HCBix@gitlab.com/Enzosystems/WebApp/BookingSystem.git",
+	"gitlab_url": "https://GitDeployments:glpat@gitlab.com/Enzosystems/WebApp/BookingSystem.git",
     	"git_url": "https://gitlab.com/Enzosystems/WebApp/BookingSystem.git",
     	"git_user": "GitDeployments",
-    	"git_pwd": "glpat-z4FseywRs53fSt8HCBix",
+    	"git_pwd": "glpat-",
 	"app_name":"{APPNAME}",
     "app_start_command": "sudo npm run dev",
 	"aws_instance_type": "t2.micro",
