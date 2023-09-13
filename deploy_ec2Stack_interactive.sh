@@ -176,15 +176,15 @@ sed -i'.backup' -e "s,{LOADBALANCERARN},${LBAARN},g" $FILE_NAME
 
 echo "${FILE_NAME} generated from CloudFormationTemplate_ec2_model.json success."
 
-echo "try to copy ${FILE_NAME}.backup in enzo-n1\\\\D2002 Enzo webservices\EnzoWebservices - Cloudformation\Cloudformation_newFiles\TemplatesBackup."
+echo "try to copy ${FILE_NAME}.backup in ${BCKUP_FOLDERNAME}"
 
 echo "lookup for the enzo-n1 drive letter "
 
-DRIVE_LETTER=`net use | awk '/enzo-n1/ { print $2} '`
+DRIVE_LETTER=`net use | awk '/${BCKUP_FOLDERNAME}/ { print $2} '`
 
 if [ -n DRIVE_LETTER ]; then
 
-    BACKUP_PATH="${DRIVE_LETTER}\\D2002 Enzo webservices\EnzoWebservices - Cloudformation\\Cloudformation_newFiles\TemplatesBackup"
+    BACKUP_PATH="${DRIVE_LETTER}"
    
     echo "${BACKUP_PATH}"
     
@@ -198,13 +198,13 @@ if [ -n DRIVE_LETTER ]; then
         fi
     fi
 else 
-    echo "lookup for the enzo-n1 drive letter failed"
+    echo "lookup for the ${BCKUP_FOLDERNAME} drive letter and mounting failed"
 fi
 
 
 echo -e "upload ${FILE_NAME} to s3 start..."
 
-if ! aws s3 cp ./$FILE_NAME s3://cloudformationtemplating ; then 
+if ! aws s3 cp ./$FILE_NAME $FILE_HOST ; then 
     
     echo -e "s3 upload failed..."
     exit 1
@@ -222,7 +222,7 @@ if ! aws cloudformation describe-stacks --region eu-west-1 --stack-name $STACK_N
   aws cloudformation create-stack \
     --region eu-west-1 \
     --stack-name $STACK_NAME \
-    --template-url https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/$FILE_NAME
+    --template-url $FILE_HOST/$FILE_NAME
     
   echo "Waiting for stack to be created ..."
   aws cloudformation wait stack-create-complete \
@@ -269,8 +269,7 @@ else
     aws cloudformation create-stack \
     --region eu-west-1 \
     --stack-name $STACK_NAME \
-    --template-url https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/$FILE_NAME
-    
+    --template-url $FILE_HOST/$FILE_NAME
     echo "Waiting for stack to be created ..."
     aws cloudformation wait stack-create-complete \
         --region eu-west-1 \
@@ -286,7 +285,7 @@ else
     update_output=$( aws cloudformation update-stack \
         --region eu-west-1 \
         --stack-name $STACK_NAME \
-        --template-url https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/$FILE_NAME  2>&1)
+        --template-url $FILE_HOST/$FILE_NAMEE  2>&1)
     status=$?
     
     set -e
