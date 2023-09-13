@@ -29,7 +29,7 @@ echo "$FILE_NAME generated from CloudFormationTemplate_vpc_model.json success."
    
 echo -e "upload to s3 start..."
 
-if ! aws s3 cp ./$FILE_NAME s3://cloudformationtemplating ; then 
+if ! aws s3 cp ./$FILE_NAME $FILE_HOST ; then 
     
     echo -e "s3 upload failed..."
     exit 1
@@ -48,8 +48,7 @@ if ! aws cloudformation describe-stacks --region eu-west-1 --stack-name $STACK_N
   aws cloudformation create-stack \
     --region eu-west-1 \
     --stack-name $STACK_NAME \
-    --template-url https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/$FILE_NAME
-
+    --template-url $FILE_HOST/$FILE_NAME
   echo "Waiting for stack to be created ..."
   aws cloudformation wait stack-create-complete \
     --region eu-west-1 \
@@ -64,7 +63,7 @@ else
   update_output=$( aws cloudformation update-stack \
     --region eu-west-1 \
     --stack-name $STACK_NAME \
-    --template-url https://cloudformationtemplating.s3.eu-west-1.amazonaws.com/$FILE_NAME 2>&1)
+    --template-url $FILE_HOST/$FILE_NAME 2>&1)
   status=$?
   set -e
 
